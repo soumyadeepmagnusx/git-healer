@@ -1,0 +1,29 @@
+# GitHealer Configuration File
+# Place this at the root of your repository as `.githealer.yaml`
+
+# Google Gemini API key (optional if set in GEMINI_API_KEY env var)
+# gemini_api_key: "your-gemini-api-key"
+
+# GitHub Token with repo permissions (optional if set in GITHUB_TOKEN env var)
+# github_token: "ghp_xxxxxxxxxxxx"
+
+# LLM Model to power the diagnostic and coder agents
+model: "gemini-2.5-flash"
+
+# Custom test command to verify fixes in sandbox (autodetected if omitted)
+# test_command: "pytest"
+# test_command: "npm test"
+# test_command: "cargo test"
+# test_command: "go test ./..."
+
+# Maximum number of refinement attempts before stopping
+max_retries: 3
+
+# Execution timeout for sandbox commands (in seconds)
+sandbox_timeout: 60
+
+# Automatically open a Pull Request upon verified patch
+auto_create_pr: false
+
+# Base branch to target for Pull Requests
+pr_base_branch: "main"
