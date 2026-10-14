@@ -166,5 +166,16 @@ class GitHealerOrchestrator:
         MarkdownReporter.generate_report(report, report_path)
         terminal.console.print(f"Generated report artifact: [cyan]{report_path}[/cyan]")
 
+        # Record Observability Metrics
+        from githealer.observability.tracker import MetricsTracker, SessionMetrics
+        MetricsTracker.record_session(SessionMetrics(
+            timestamp=report.timestamp,
+            target_repo=repo_root.name,
+            duration_seconds=report.verification.duration_seconds if report.verification else 0.5,
+            total_iterations=len(patches) or 1,
+            success=report.success,
+            estimated_cost_usd=0.0001
+        ), repo_root)
+
         terminal.print_final_summary(report)
         return report

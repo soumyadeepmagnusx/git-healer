@@ -243,6 +243,30 @@ def main():
     comment_parser.add_argument("--report", default="githealer-report.md", help="Path to report markdown")
     comment_parser.set_defaults(func=comment_pr_command)
 
+    # Stats / Observability
+    def stats_command(args):
+        terminal.print_banner()
+        from githealer.observability.tracker import MetricsTracker
+        from rich.table import Table
+        from rich.panel import Panel
+
+        summary = MetricsTracker.get_summary(args.repo)
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("Metric", style="cyan")
+        table.add_column("Value", style="bold white")
+
+        table.add_row("Total Healing Runs", str(summary["total_runs"]))
+        table.add_row("Successful Fixes", str(summary["successful_runs"]))
+        table.add_row("Success Rate", f"{summary['success_rate']}%")
+        table.add_row("Avg Resolution Time", f"{summary['avg_duration']}s")
+        table.add_row("Total Estimated API Cost", f"${summary['total_cost_usd']}")
+
+        terminal.console.print(Panel(table, title="[bold green]📈 GitHealer Observability & Token Metrics[/bold green]", expand=False))
+
+    stats_parser = subparsers.add_parser("stats", help="Display self-healing performance and token statistics")
+    stats_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    stats_parser.set_defaults(func=stats_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
