@@ -224,6 +224,25 @@ def main():
     rb_parser.add_argument("--checkpoint", help="Specific checkpoint ID (defaults to latest)")
     rb_parser.set_defaults(func=rollback_command)
 
+    # Comment PR
+    def comment_pr_command(args):
+        terminal.print_banner()
+        from githealer.github.pr_commenter import PRCommentBot
+        bot = PRCommentBot()
+        body = PRCommentBot.format_quick_comment(args.report)
+        terminal.console.print(f"[bold cyan]Posting self-healing report to PR #{args.pr}...[/bold cyan]")
+        res = bot.post_comment(args.repo_slug, args.pr, body)
+        if res:
+            terminal.console.print(f"[bold green]✔ Successfully commented on PR #{args.pr}![/bold green]")
+        else:
+            terminal.console.print("[yellow]Notice: Comment skipped or token missing (check GITHUB_TOKEN).[/yellow]")
+
+    comment_parser = subparsers.add_parser("comment-pr", help="Post GitHealer report to GitHub Pull Request")
+    comment_parser.add_argument("--repo-slug", required=True, help="GitHub repository (e.g. owner/repo)")
+    comment_parser.add_argument("--pr", type=int, required=True, help="Pull Request number")
+    comment_parser.add_argument("--report", default="githealer-report.md", help="Path to report markdown")
+    comment_parser.set_defaults(func=comment_pr_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
