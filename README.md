@@ -47,17 +47,39 @@ flowchart TD
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Dual-Engine Superpowers
 
-### 1. Installation
+GitHealer is equipped with two complementary engines:
+
+### 🏥 Engine 1: Git Repository Emergency Room & Disaster Recovery
+Diagnose local repository health, recover lost commits from reflog, unstick broken rebases, and detect leaked API keys:
 
 ```bash
-git clone https://github.com/<your-username>/git-healer.git
-cd git-healer
-pip install -e .
+# 🔍 Instant repository health scan (detached HEAD, stale branches, uncommitted bloat)
+git-healer check
+
+# 🩹 Interactive emergency room wizard (recover lost reset commits, rebase rescue, squash)
+git-healer fix
+
+# 🔐 Secret leak scanner (scans for OpenAI, Gemini, AWS, GitHub tokens & .env files)
+git-healer secrets
+
+# 🧹 Clean up merged local branches
+git-healer cleanup
 ```
 
-### 2. Try the Instant Interactive Demo
+---
+
+### 🤖 Engine 2: Autonomous Multi-Agent CI/CD Self-Healing
+Diagnoses test failures in an isolated sandbox, generates surgical code patches, and opens verified Pull Requests:
+
+```bash
+# Try the instant interactive demo
+git-healer demo
+
+# Self-heal any project
+git-healer run --repo ./my-project --cmd "pytest"
+```
 
 Want to see GitHealer heal a broken repository right inside your terminal? Run:
 

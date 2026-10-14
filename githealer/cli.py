@@ -267,6 +267,35 @@ def main():
     stats_parser.add_argument("--repo", "-r", default=".", help="Repository path")
     stats_parser.set_defaults(func=stats_command)
 
+    # Repository Health & Disaster Recovery Forwarders
+    def check_forwarder(args):
+        import healer
+        healer.check.callback()
+
+    def fix_forwarder(args):
+        import healer
+        healer.fix.callback()
+
+    def cleanup_forwarder(args):
+        import healer
+        healer.cleanup.callback()
+
+    def secrets_forwarder(args):
+        import healer
+        healer.secrets.callback()
+
+    check_parser = subparsers.add_parser("check", help="Scan repository for detached HEAD, stale branches, and health")
+    check_parser.set_defaults(func=check_forwarder)
+
+    fix_parser = subparsers.add_parser("fix", help="Interactive Git disaster recovery wizard (reflog, rebase rescue)")
+    fix_parser.set_defaults(func=fix_forwarder)
+
+    clean_parser = subparsers.add_parser("cleanup", help="Target and purge merged local branches")
+    clean_parser.set_defaults(func=cleanup_forwarder)
+
+    sec_parser = subparsers.add_parser("secrets", help="Scan repository for leaked credentials & API keys")
+    sec_parser.set_defaults(func=secrets_forwarder)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
