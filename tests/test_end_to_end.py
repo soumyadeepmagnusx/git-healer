@@ -11,7 +11,11 @@ def test_end_to_end_self_healing(tmp_path):
 """, encoding="utf-8")
 
     test_file = tmp_path / "test_calculator.py"
-    test_file.write_text("""import pytest
+    test_file.write_text("""import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
+
+import pytest
 from calculator import divide
 
 def test_divide_zero():

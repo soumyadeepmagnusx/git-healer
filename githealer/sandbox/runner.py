@@ -33,6 +33,10 @@ class SandboxRunner:
         env["PYTHONUNBUFFERED"] = "1"
         env["CI"] = "true"
 
+        # Ensure sandbox working directory is in PYTHONPATH so local modules are discoverable
+        existing_pythonpath = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = f"{str(self.working_dir)}{os.pathsep}{existing_pythonpath}".rstrip(os.pathsep)
+
         use_shell = True
 
         try:

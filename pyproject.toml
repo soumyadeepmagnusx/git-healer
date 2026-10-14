@@ -36,5 +36,12 @@ test = [
 git-healer = "githealer.cli:main"
 githealer = "githealer.cli:main"
 
+[tool.setuptools]
+py-modules = ["healer"]
+
 [tool.setuptools.packages.find]
 include = ["githealer*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
