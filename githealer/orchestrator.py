@@ -94,6 +94,11 @@ class GitHealerOrchestrator:
             if target_f.is_file():
                 backups[sf] = target_f.read_text(encoding="utf-8")
 
+        # Step 3.5: Create Safety Checkpoint Snapshot
+        from githealer.safety.checkpoint import CheckpointManager
+        chk_id = CheckpointManager.create_checkpoint(repo_root, label="pre-heal-snapshot")
+        terminal.console.print(f"[dim]Created safety checkpoint snapshot: {chk_id}[/dim]")
+
         # Step 4: Iterative Coder & Verification Loop
         report = HealReport(
             repo_path=str(repo_root),

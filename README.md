@@ -84,6 +84,34 @@ git-healer run --repo ./path/to/my-project --log ci_failure.log
 
 ---
 
+## 🌟 Superb New Features
+
+### 1. 🖥️ Interactive Web Dashboard
+Launch a sleek local UI to monitor real-time healing progress, explore interactive code diffs, and review sandbox verification logs:
+```bash
+git-healer dashboard --port 8080
+```
+
+### 2. 🩺 Environment Doctor & Missing Dependency Diagnoser
+Automatically scan for missing dependencies (`ModuleNotFoundError`, missing npm packages) and get suggested remediation commands:
+```bash
+git-healer doctor --repo . --log ci_failure.log
+```
+
+### 3. 🔬 AI Flaky Test Detection & Stability Scoring
+Run automated repeated trials in the sandbox to distinguish intermittent race-condition flakes from deterministic bugs:
+```bash
+git-healer check-flaky --cmd "pytest tests/" --runs 5
+```
+
+### 4. 🛡️ Safety Checkpoints & Instant Rollback
+GitHealer creates automatic pre-heal snapshots. If you ever want to revert a patch, restore your repository to pristine condition with one command:
+```bash
+git-healer rollback
+```
+
+---
+
 ## 🤖 Use as a GitHub Action in Your Repositories
 
 Add GitHealer to your existing repository workflow so it fixes test failures automatically:

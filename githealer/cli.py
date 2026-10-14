@@ -112,6 +112,65 @@ def test_divide_by_zero():
     orchestrator.heal(repo_path=demo_dir, test_command="pytest")
 
 
+def dashboard_command(args):
+    terminal.print_banner()
+    terminal.console.print(f"[bold green]Starting GitHealer Live Web Dashboard on port {args.port}...[/bold green]")
+    from githealer.dashboard.server import DashboardServer
+    DashboardServer.serve(port=args.port, open_browser=not args.no_browser)
+
+
+def doctor_command(args):
+    terminal.print_banner()
+    terminal.console.print("[bold cyan]🩺 GitHealer Environment Doctor[/bold cyan]\n")
+    from githealer.environment.doctor import EnvironmentDoctor
+    ecosystems = EnvironmentDoctor.detect_ecosystem(args.repo)
+    terminal.console.print("Detected Project Ecosystems:")
+    for eco, present in ecosystems.items():
+        icon = "[green]✔[/green]" if present else "[dim]✗[/dim]"
+        terminal.console.print(f"  {icon} {eco.capitalize()}")
+
+    if args.log:
+        log_txt = Path(args.log).read_text(encoding="utf-8", errors="replace")
+        missing = EnvironmentDoctor.diagnose_missing_dependencies(log_txt)
+        if missing:
+            terminal.console.print(f"\n[bold red]Detected {len(missing)} missing package(s):[/bold red]")
+            for eco, pkg in missing:
+                terminal.console.print(f"  - [{eco}] [bold]{pkg}[/bold]")
+            suggestions = EnvironmentDoctor.suggest_remediation(missing)
+            terminal.console.print("\n[bold yellow]Recommended remediation commands:[/bold yellow]")
+            for cmd in suggestions:
+                terminal.console.print(f"  [cyan]$ {cmd}[/cyan]")
+        else:
+            terminal.console.print("\n[green]No missing package errors found in log.[/green]")
+
+
+def check_flaky_command(args):
+    terminal.print_banner()
+    terminal.console.print(f"[bold yellow]🔬 Testing for flaky test behavior ({args.runs} runs)...[/bold yellow]\n")
+    from githealer.sandbox.runner import SandboxRunner
+    from githealer.flaky.detector import FlakyTestDetector
+    sandbox = SandboxRunner(working_dir=args.repo)
+    detector = FlakyTestDetector(sandbox)
+    report = detector.analyze(test_command=args.cmd, runs=args.runs)
+
+    color = "yellow" if report.is_flaky else ("green" if report.failures == 0 else "red")
+    terminal.console.print(f"[{color}]Result: {report.diagnosis}[/{color}]")
+    terminal.console.print(f"Passes: [green]{report.passes}[/green] / Failures: [red]{report.failures}[/red]")
+    if report.failing_tests:
+        terminal.console.print(f"Intermittent / Failing tests: {', '.join(report.failing_tests)}")
+
+
+def rollback_command(args):
+    terminal.print_banner()
+    from githealer.safety.checkpoint import CheckpointManager
+    terminal.console.print("[bold yellow]Rolling back to previous checkpoint...[/bold yellow]")
+    success = CheckpointManager.rollback(args.repo, checkpoint_id=args.checkpoint)
+    if success:
+        terminal.console.print("[bold green]✔ Rollback successful! Restored clean working state.[/bold green]")
+    else:
+        terminal.console.print("[bold red]Failed to restore checkpoint. No valid checkpoints found.[/bold red]")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="git-healer",
@@ -139,6 +198,31 @@ def main():
     # Demo
     demo_parser = subparsers.add_parser("demo", help="Run an instant interactive demo with a simulated bug")
     demo_parser.set_defaults(func=demo_command)
+
+    # Dashboard
+    dash_parser = subparsers.add_parser("dashboard", help="Start local web dashboard")
+    dash_parser.add_argument("--port", "-p", type=int, default=8080, help="Port to run dashboard on")
+    dash_parser.add_argument("--no-browser", action="store_true", help="Don't open browser automatically")
+    dash_parser.set_defaults(func=dashboard_command)
+
+    # Doctor
+    doc_parser = subparsers.add_parser("doctor", help="Diagnose environment and missing dependencies")
+    doc_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    doc_parser.add_argument("--log", "-l", help="Optional CI failure log")
+    doc_parser.set_defaults(func=doctor_command)
+
+    # Check-Flaky
+    flaky_parser = subparsers.add_parser("check-flaky", help="Check if test failures are intermittent/flaky")
+    flaky_parser.add_argument("--cmd", "-c", default="pytest", help="Test command to repeat")
+    flaky_parser.add_argument("--runs", "-n", type=int, default=3, help="Number of test runs")
+    flaky_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    flaky_parser.set_defaults(func=check_flaky_command)
+
+    # Rollback
+    rb_parser = subparsers.add_parser("rollback", help="Safely roll back changes using checkpoints")
+    rb_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    rb_parser.add_argument("--checkpoint", help="Specific checkpoint ID (defaults to latest)")
+    rb_parser.set_defaults(func=rollback_command)
 
     args = parser.parse_args()
     if not args.command:
