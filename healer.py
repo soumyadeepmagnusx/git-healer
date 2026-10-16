@@ -245,5 +245,39 @@ def secrets():
         console.print("[bold green]✔ No leaked API keys or credentials detected across your repository.[/bold green]")
 
 
+@cli.command("commit-lint")
+@click.option("--message", "-m", help="Message to check (defaults to latest git commit)")
+def commit_lint(message: Optional[str] = None):
+    """Verify commit messages against Conventional Commits specs."""
+    from githealer.git_doctor.commit_linter import CommitDoctor
+    msg = message
+    if not msg:
+        msg = run_git(["log", "-1", "--pretty=%B"])
+
+    if not msg or msg.startswith("Error:"):
+        console.print("[red]Error: No commit message provided and no git commit history found.[/red]")
+        return
+
+    console.print(f"[bold cyan]🔍 Linting Commit Message:[/bold cyan] \"{msg.splitlines()[0]}\"\n")
+    res = CommitDoctor.lint(msg)
+
+    if res.is_valid:
+        console.print("[bold green]✔ Valid Conventional Commit![/bold green]")
+        console.print(f"  Type:  [green]{res.commit_type}[/green]")
+        if res.scope:
+            console.print(f"  Scope: [cyan]{res.scope}[/cyan]")
+    else:
+        console.print("[bold red]❌ Commit Message Violations:[/bold red]")
+        for err in res.errors:
+            console.print(f"  - [red]{err}[/red]")
+        if res.suggestion:
+            console.print(f"\n[bold yellow]💡 Suggested Conventional Format:[/bold yellow]\n  [green]{res.suggestion}[/green]")
+
+    if res.warnings:
+        console.print("\n[yellow]⚠️ Warnings:[/yellow]")
+        for w in res.warnings:
+            console.print(f"  - [yellow]{w}[/yellow]")
+
+
 if __name__ == "__main__":
     cli()

@@ -296,6 +296,47 @@ def main():
     sec_parser = subparsers.add_parser("secrets", help="Scan repository for leaked credentials & API keys")
     sec_parser.set_defaults(func=secrets_forwarder)
 
+    # Commit Doctor / Commit Lint
+    def commit_lint_command(args):
+        terminal.print_banner()
+        from githealer.git_doctor.commit_linter import CommitDoctor
+        msg = args.message
+        if not msg:
+            # Check last git commit message
+            import subprocess
+            res = subprocess.run(["git", "log", "-1", "--pretty=%B"], capture_output=True, text=True)
+            msg = res.stdout.strip() if res.returncode == 0 else ""
+
+        if not msg:
+            terminal.console.print("[red]Error: No commit message provided and no git commit history found.[/red]")
+            return
+
+        terminal.console.print(f"[bold cyan]🔍 Linting Commit Message:[/bold cyan] \"{msg.splitlines()[0]}\"\n")
+        res = CommitDoctor.lint(msg)
+
+        if res.is_valid:
+            terminal.console.print("[bold green]✔ Valid Conventional Commit![/bold green]")
+            terminal.console.print(f"  Type:  [green]{res.commit_type}[/green]")
+            if res.scope:
+                terminal.console.print(f"  Scope: [cyan]{res.scope}[/cyan]")
+            if res.is_breaking:
+                terminal.console.print("  [bold red]BREAKING CHANGE[/bold red]")
+        else:
+            terminal.console.print("[bold red]❌ Commit Message Violations:[/bold red]")
+            for err in res.errors:
+                terminal.console.print(f"  - [red]{err}[/red]")
+            if res.suggestion:
+                terminal.console.print(f"\n[bold yellow]💡 Suggested Conventional Format:[/bold yellow]\n  [green]{res.suggestion}[/green]")
+
+        if res.warnings:
+            terminal.console.print("\n[yellow]⚠️ Warnings:[/yellow]")
+            for w in res.warnings:
+                terminal.console.print(f"  - [yellow]{w}[/yellow]")
+
+    commit_parser = subparsers.add_parser("commit-lint", help="Verify commit messages against Conventional Commits")
+    commit_parser.add_argument("--message", "-m", help="Message to check (defaults to latest git commit)")
+    commit_parser.set_defaults(func=commit_lint_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
