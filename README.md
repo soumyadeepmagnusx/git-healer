@@ -5,6 +5,7 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT">
   <img src="https://img.shields.io/badge/Powered%20By-Antigravity%20AI-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Antigravity AI">
   <img src="https://img.shields.io/badge/CI%2FCD-Self--Healing-00C853?style=for-the-badge" alt="Self-Healing">
+  <img src="https://img.shields.io/badge/Health%20Score-96%2F100%20(A%2B)-brightgreen?style=for-the-badge" alt="Health Score: A+">
 </p>
 
 ```
@@ -130,6 +131,20 @@ git-healer check-flaky --cmd "pytest tests/" --runs 5
 GitHealer creates automatic pre-heal snapshots. If you ever want to revert a patch, restore your repository to pristine condition with one command:
 ```bash
 git-healer rollback
+```
+
+### 5. ✍️ Commit Doctor & Conventional Commit Linter
+Verify commit messages against the Conventional Commits specification and detect vague messages:
+```bash
+git-healer commit-lint
+# Or lint a specific message:
+git-healer commit-lint -m "feat(api): add health check endpoint"
+```
+
+### 6. 📊 Repository Health Scorecard (0–100) & Badge Generator
+Compute an automated health audit (Git hygiene, test coverage, secrets, commit quality) and get an SVG/Markdown badge:
+```bash
+git-healer score
 ```
 
 ---

@@ -337,6 +337,31 @@ def main():
     commit_parser.add_argument("--message", "-m", help="Message to check (defaults to latest git commit)")
     commit_parser.set_defaults(func=commit_lint_command)
 
+    # Health Score
+    def score_command(args):
+        terminal.print_banner()
+        from githealer.scoring.health_score import HealthScoreCalculator
+        from rich.table import Table
+        from rich.panel import Panel
+
+        score = HealthScoreCalculator.calculate(args.repo)
+        grade_color = "green" if score.overall_score >= 85 else ("yellow" if score.overall_score >= 70 else "red")
+
+        table = Table(title=f"Repository Health Grade: [{grade_color}]{score.grade} ({score.overall_score}/100)[/{grade_color}]", header_style="bold magenta")
+        table.add_column("Category", style="cyan", width=22)
+        table.add_column("Score", style="bold white", width=12)
+        table.add_column("Key Findings", style="yellow")
+
+        for cat in score.categories:
+            table.add_row(cat.name, f"{cat.score}/{cat.max_score}", "; ".join(cat.feedback))
+
+        terminal.console.print(Panel(table, title="[bold green]📊 GitHealer Repository Health Scorecard[/bold green]", expand=False))
+        terminal.console.print(f"\n[bold]Markdown Badge for README:[/bold]\n`{score.badge_markdown}`")
+
+    score_parser = subparsers.add_parser("score", help="Compute repository health score (0-100) and generate README badge")
+    score_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    score_parser.set_defaults(func=score_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()

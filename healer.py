@@ -279,5 +279,26 @@ def commit_lint(message: Optional[str] = None):
             console.print(f"  - [yellow]{w}[/yellow]")
 
 
+@cli.command("score")
+@click.option("--repo", "-r", default=".", help="Repository path to score")
+def score(repo: str = "."):
+    """Compute repository health score (0-100) and generate a Markdown badge."""
+    from githealer.scoring.health_score import HealthScoreCalculator
+
+    res = HealthScoreCalculator.calculate(repo)
+    grade_color = "green" if res.overall_score >= 85 else ("yellow" if res.overall_score >= 70 else "red")
+
+    table = Table(title=f"Repository Health Grade: [{grade_color}]{res.grade} ({res.overall_score}/100)[/{grade_color}]", header_style="bold magenta")
+    table.add_column("Category", style="cyan", width=22)
+    table.add_column("Score", style="bold white", width=12)
+    table.add_column("Key Findings", style="yellow")
+
+    for cat in res.categories:
+        table.add_row(cat.name, f"{cat.score}/{cat.max_score}", "; ".join(cat.feedback))
+
+    console.print(Panel(table, title="[bold green]📊 GitHealer Repository Health Scorecard[/bold green]", expand=False))
+    console.print(f"\n[bold]Markdown Badge for README:[/bold]\n`{res.badge_markdown}`")
+
+
 if __name__ == "__main__":
     cli()
