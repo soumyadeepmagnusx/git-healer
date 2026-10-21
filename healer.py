@@ -300,5 +300,32 @@ def score(repo: str = "."):
     console.print(f"\n[bold]Markdown Badge for README:[/bold]\n`{res.badge_markdown}`")
 
 
+@cli.command("gitignore")
+@click.option("--repo", "-r", default=".", help="Repository path")
+@click.option("--audit", is_flag=True, help="Audit existing .gitignore for security omissions")
+@click.option("--apply", is_flag=True, help="Write or append missing rules to .gitignore")
+def gitignore(repo: str = ".", audit: bool = False, apply: bool = False):
+    """Generate tailored .gitignore templates or audit security rules."""
+    from githealer.gitignore.generator import GitignoreGenerator
+    if audit:
+        is_ok, missing = GitignoreGenerator.audit_existing(repo)
+        if is_ok:
+            console.print("[bold green]✔ .gitignore is healthy and contains all critical security rules.[/bold green]")
+        else:
+            console.print(f"[bold yellow]⚠️ Found {len(missing)} missing security rules:[/bold yellow]")
+            for m in missing:
+                console.print(f"  - {m}")
+    elif apply:
+        updated = GitignoreGenerator.apply_to_repo(repo)
+        if updated:
+            console.print("[bold green]✔ Tailored .gitignore updated with missing rules.[/bold green]")
+        else:
+            console.print("[green]✔ No updates needed; .gitignore is already up to date.[/green]")
+    else:
+        content = GitignoreGenerator.generate(repo)
+        console.print("[bold cyan]Generated .gitignore template:[/bold cyan]\n")
+        console.print(content)
+
+
 if __name__ == "__main__":
     cli()

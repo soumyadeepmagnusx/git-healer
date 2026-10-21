@@ -362,6 +362,35 @@ def main():
     score_parser.add_argument("--repo", "-r", default=".", help="Repository path")
     score_parser.set_defaults(func=score_command)
 
+    # Gitignore Generator & Audit
+    def gitignore_command(args):
+        terminal.print_banner()
+        from githealer.gitignore.generator import GitignoreGenerator
+        if args.audit:
+            is_ok, missing = GitignoreGenerator.audit_existing(args.repo)
+            if is_ok:
+                terminal.console.print("[bold green]✔ .gitignore is healthy and contains all critical security rules.[/bold green]")
+            else:
+                terminal.console.print(f"[bold yellow]⚠️ Found {len(missing)} missing security rules:[/bold yellow]")
+                for m in missing:
+                    terminal.console.print(f"  - {m}")
+        elif args.apply:
+            updated = GitignoreGenerator.apply_to_repo(args.repo)
+            if updated:
+                terminal.console.print("[bold green]✔ Tailored .gitignore updated with missing rules.[/bold green]")
+            else:
+                terminal.console.print("[green]✔ No updates needed; .gitignore is already up to date.[/green]")
+        else:
+            content = GitignoreGenerator.generate(args.repo)
+            terminal.console.print("[bold cyan]Generated .gitignore template:[/bold cyan]\n")
+            terminal.console.print(content)
+
+    gi_parser = subparsers.add_parser("gitignore", help="Generate or audit project .gitignore rules")
+    gi_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    gi_parser.add_argument("--audit", action="store_true", help="Audit existing .gitignore for security omissions")
+    gi_parser.add_argument("--apply", action="store_true", help="Write or append missing rules to .gitignore")
+    gi_parser.set_defaults(func=gitignore_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
