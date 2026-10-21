@@ -391,6 +391,29 @@ def main():
     gi_parser.add_argument("--apply", action="store_true", help="Write or append missing rules to .gitignore")
     gi_parser.set_defaults(func=gitignore_command)
 
+    # Changelog & Semantic Release
+    def changelog_command(args):
+        terminal.print_banner()
+        from githealer.release.changelog import ChangelogGenerator
+        plan = ChangelogGenerator.generate_release(args.repo, current_version=args.version, commit_limit=args.limit)
+
+        terminal.console.print(f"[bold cyan]📦 Semantic Release Plan:[/bold cyan] [yellow]{plan.current_version}[/yellow] ➔ [bold green]{plan.next_version}[/bold green] ([magenta]{plan.bump_type.upper()}[/magenta] bump)\n")
+        terminal.console.print(plan.changelog_markdown)
+
+        if args.write:
+            cl_path = Path(args.repo) / "CHANGELOG.md"
+            existing = cl_path.read_text(encoding="utf-8") if cl_path.is_file() else ""
+            new_content = f"# Changelog\n\n{plan.changelog_markdown}\n\n{existing.replace('# Changelog', '').strip()}"
+            cl_path.write_text(new_content.strip() + "\n", encoding="utf-8")
+            terminal.console.print(f"\n[bold green]✔ Successfully wrote release notes to {cl_path}![/bold green]")
+
+    cl_parser = subparsers.add_parser("changelog", help="Generate automated changelog and compute next SemVer release")
+    cl_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    cl_parser.add_argument("--version", "-v", default="1.0.0", help="Current version (default: 1.0.0)")
+    cl_parser.add_argument("--limit", "-n", type=int, default=50, help="Number of recent commits to analyze")
+    cl_parser.add_argument("--write", "-w", action="store_true", help="Write release notes to CHANGELOG.md")
+    cl_parser.set_defaults(func=changelog_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()

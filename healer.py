@@ -327,5 +327,26 @@ def gitignore(repo: str = ".", audit: bool = False, apply: bool = False):
         console.print(content)
 
 
+@cli.command("changelog")
+@click.option("--repo", "-r", default=".", help="Repository path")
+@click.option("--version", "-v", default="1.0.0", help="Current version (default: 1.0.0)")
+@click.option("--limit", "-n", default=50, type=int, help="Number of recent commits to analyze")
+@click.option("--write", "-w", is_flag=True, help="Write release notes to CHANGELOG.md")
+def changelog(repo: str = ".", version: str = "1.0.0", limit: int = 50, write: bool = False):
+    """Generate automated changelog and compute next SemVer release."""
+    from githealer.release.changelog import ChangelogGenerator
+    plan = ChangelogGenerator.generate_release(repo, current_version=version, commit_limit=limit)
+
+    console.print(f"[bold cyan]📦 Semantic Release Plan:[/bold cyan] [yellow]{plan.current_version}[/yellow] ➔ [bold green]{plan.next_version}[/bold green] ([magenta]{plan.bump_type.upper()}[/magenta] bump)\n")
+    console.print(plan.changelog_markdown)
+
+    if write:
+        cl_path = Path(repo) / "CHANGELOG.md"
+        existing = cl_path.read_text(encoding="utf-8") if cl_path.is_file() else ""
+        new_content = f"# Changelog\n\n{plan.changelog_markdown}\n\n{existing.replace('# Changelog', '').strip()}"
+        cl_path.write_text(new_content.strip() + "\n", encoding="utf-8")
+        console.print(f"\n[bold green]✔ Successfully wrote release notes to {cl_path}![/bold green]")
+
+
 if __name__ == "__main__":
     cli()

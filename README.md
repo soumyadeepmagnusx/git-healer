@@ -147,6 +147,22 @@ Compute an automated health audit (Git hygiene, test coverage, secrets, commit q
 git-healer score
 ```
 
+### 7. 🛡️ Smart .gitignore Generator & Security Auditor
+Auto-detect repository languages and frameworks to generate clean rules or audit existing exclusions:
+```bash
+# Audit existing .gitignore for missing critical security rules:
+git-healer gitignore --audit
+
+# Automatically append missing security rules:
+git-healer gitignore --apply
+```
+
+### 8. 📦 Automated Semantic Release & Changelog Generator
+Parse Conventional Commits, compute next SemVer release (Major/Minor/Patch), and generate categorized release notes:
+```bash
+git-healer changelog --version 1.0.0 --write
+```
+
 ---
 
 ## 🤖 Use as a GitHub Action in Your Repositories
