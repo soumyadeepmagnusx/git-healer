@@ -163,6 +163,16 @@ Parse Conventional Commits, compute next SemVer release (Major/Minor/Patch), and
 git-healer changelog --version 1.0.0 --write
 ```
 
+### 9. 🪝 Automated Pre-Commit & Commit-Msg Security Hooks
+Install automatic Git hooks that block leaked `.env` keys, private credentials, and invalid commit messages before they ever touch your Git history:
+```bash
+# Install hooks in your repo:
+git-healer hook install
+
+# Check hook status:
+git-healer hook status
+```
+
 ---
 
 ## 🤖 Use as a GitHub Action in Your Repositories

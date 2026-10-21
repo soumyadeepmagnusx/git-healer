@@ -348,5 +348,26 @@ def changelog(repo: str = ".", version: str = "1.0.0", limit: int = 50, write: b
         console.print(f"\n[bold green]✔ Successfully wrote release notes to {cl_path}![/bold green]")
 
 
+@cli.command("hook")
+@click.argument("action", type=click.Choice(["status", "install", "uninstall"]), default="status")
+@click.option("--repo", "-r", default=".", help="Repository path")
+def hook(action: str = "status", repo: str = "."):
+    """Install or audit automated Git pre-commit and commit-msg security hooks."""
+    from githealer.hooks.manager import HookManager
+    if action == "install":
+        ok, msg = HookManager.install(repo)
+        console.print(f"[{'bold green' if ok else 'bold red'}]{msg}[/]")
+    elif action == "uninstall":
+        ok, msg = HookManager.uninstall(repo)
+        console.print(f"[{'bold green' if ok else 'bold red'}]{msg}[/]")
+    else:
+        st = HookManager.status(repo)
+        console.print("[bold cyan]GitHealer Hook Status:[/bold cyan]")
+        pre_icon = "[green]Active (Installed)[/green]" if st["pre_commit"] else "[dim]Not installed[/dim]"
+        msg_icon = "[green]Active (Installed)[/green]" if st["commit_msg"] else "[dim]Not installed[/dim]"
+        console.print(f"  • pre-commit hook:  {pre_icon}")
+        console.print(f"  • commit-msg hook:  {msg_icon}")
+
+
 if __name__ == "__main__":
     cli()

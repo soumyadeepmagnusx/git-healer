@@ -414,6 +414,29 @@ def main():
     cl_parser.add_argument("--write", "-w", action="store_true", help="Write release notes to CHANGELOG.md")
     cl_parser.set_defaults(func=changelog_command)
 
+    # Git Hook Manager
+    def hook_command(args):
+        terminal.print_banner()
+        from githealer.hooks.manager import HookManager
+        if args.action == "install":
+            ok, msg = HookManager.install(args.repo)
+            terminal.console.print(f"[{'bold green' if ok else 'bold red'}]{msg}[/]")
+        elif args.action == "uninstall":
+            ok, msg = HookManager.uninstall(args.repo)
+            terminal.console.print(f"[{'bold green' if ok else 'bold red'}]{msg}[/]")
+        else:
+            st = HookManager.status(args.repo)
+            terminal.console.print("[bold cyan]GitHealer Hook Status:[/bold cyan]")
+            pre_icon = "[green]Active (Installed)[/green]" if st["pre_commit"] else "[dim]Not installed[/dim]"
+            msg_icon = "[green]Active (Installed)[/green]" if st["commit_msg"] else "[dim]Not installed[/dim]"
+            terminal.console.print(f"  • pre-commit hook:  {pre_icon}")
+            terminal.console.print(f"  • commit-msg hook:  {msg_icon}")
+
+    hk_parser = subparsers.add_parser("hook", help="Install or audit automated Git pre-commit and commit-msg security hooks")
+    hk_parser.add_argument("action", choices=["status", "install", "uninstall"], default="status", nargs="?", help="Action to perform")
+    hk_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    hk_parser.set_defaults(func=hook_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
