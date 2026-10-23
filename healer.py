@@ -393,5 +393,31 @@ def bloat(repo: str = ".", threshold: float = 5.0):
         console.print(f"  • {r}")
 
 
+@cli.command("branches")
+@click.option("--repo", "-r", default=".", help="Repository path")
+def branches(repo: str = "."):
+    """Visualize branches, remote tracking, and ahead/behind sync status."""
+    from githealer.branch.visualizer import BranchVisualizer
+    branch_list = BranchVisualizer.get_branches(repo)
+    if not branch_list:
+        console.print("[dim]No local branches found.[/dim]")
+        return
+
+    table = Table(title="🌿 Git Branches & Remote Sync Status", header_style="bold magenta")
+    table.add_column("Branch", style="bold cyan")
+    table.add_column("Tracking", style="yellow")
+    table.add_column("Sync Status", style="white")
+    table.add_column("Commit", style="dim")
+    table.add_column("Latest Message", style="white")
+
+    for b in branch_list:
+        b_label = f"● {b.name} (active)" if b.is_current else f"  {b.name}"
+        style_name = "bold green" if b.is_current else "cyan"
+        status_str = BranchVisualizer.format_status(b)
+        table.add_row(f"[{style_name}]{b_label}[/{style_name}]", b.upstream or "None", status_str, b.commit_hash[:7], b.commit_message[:45])
+
+    console.print(Panel(table, title="[bold green]Git Branch Inspector[/bold green]", expand=False))
+
+
 if __name__ == "__main__":
     cli()

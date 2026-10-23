@@ -466,6 +466,37 @@ def main():
     bloat_parser.add_argument("--threshold", "-t", type=float, default=5.0, help="Size threshold in MB (default: 5.0)")
     bloat_parser.set_defaults(func=bloat_command)
 
+    # Branch Visualizer
+    def branches_command(args):
+        terminal.print_banner()
+        from githealer.branch.visualizer import BranchVisualizer
+        from rich.table import Table
+        from rich.panel import Panel
+
+        branches = BranchVisualizer.get_branches(args.repo)
+        if not branches:
+            terminal.console.print("[dim]No local branches found.[/dim]")
+            return
+
+        table = Table(title="🌿 Git Branches & Remote Sync Status", header_style="bold magenta")
+        table.add_column("Branch", style="bold cyan")
+        table.add_column("Tracking", style="yellow")
+        table.add_column("Sync Status", style="white")
+        table.add_column("Commit", style="dim")
+        table.add_column("Latest Message", style="white")
+
+        for b in branches:
+            b_label = f"● {b.name} (active)" if b.is_current else f"  {b.name}"
+            style_name = "bold green" if b.is_current else "cyan"
+            status_str = BranchVisualizer.format_status(b)
+            table.add_row(f"[{style_name}]{b_label}[/{style_name}]", b.upstream or "None", status_str, b.commit_hash[:7], b.commit_message[:45])
+
+        terminal.console.print(Panel(table, title="[bold green]Git Branch Inspector[/bold green]", expand=False))
+
+    branch_parser = subparsers.add_parser("branches", help="Visualize branches, remote tracking, and ahead/behind sync status")
+    branch_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    branch_parser.set_defaults(func=branches_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()

@@ -173,6 +173,18 @@ git-healer hook install
 git-healer hook status
 ```
 
+### 10. 📦 Repository Bloat & Oversized Binary Asset Detector
+Inspect working trees and Git commit history for accidental binary commits, bloated media files, and large models:
+```bash
+git-healer bloat --threshold 5.0
+```
+
+### 11. 🌿 Branch Inspector & Upstream Sync Status
+Visualize active branches, remote tracking targets, and ahead/behind commit statuses:
+```bash
+git-healer branches
+```
+
 ---
 
 ## 🤖 Use as a GitHub Action in Your Repositories
