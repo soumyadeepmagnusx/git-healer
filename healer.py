@@ -369,5 +369,29 @@ def hook(action: str = "status", repo: str = "."):
         console.print(f"  • commit-msg hook:  {msg_icon}")
 
 
+@cli.command("bloat")
+@click.option("--repo", "-r", default=".", help="Repository path")
+@click.option("--threshold", "-t", default=5.0, type=float, help="Size threshold in MB (default: 5.0)")
+def bloat(repo: str = ".", threshold: float = 5.0):
+    """Detect oversized binary assets and repository bloat."""
+    from githealer.bloat.analyzer import BloatAnalyzer
+    report = BloatAnalyzer.analyze(repo, threshold_mb=threshold)
+    if not report.oversized_files:
+        console.print(f"[bold green]✔ Clean repository! No files exceeding {threshold}MB found.[/bold green]")
+        return
+
+    table = Table(title=f"🚨 Detected Oversized Assets (Total: {report.total_bloat_mb}MB)", header_style="bold magenta")
+    table.add_column("File Path", style="cyan")
+    table.add_column("Size (MB)", style="bold red")
+
+    for f in report.oversized_files:
+        table.add_row(f.path, f"{f.size_mb} MB")
+
+    console.print(Panel(table, title="[bold yellow]📦 Repository Bloat Analysis[/bold yellow]", expand=False))
+    console.print("\n[bold yellow]💡 Recommendations:[/bold yellow]")
+    for r in report.recommendations:
+        console.print(f"  • {r}")
+
+
 if __name__ == "__main__":
     cli()

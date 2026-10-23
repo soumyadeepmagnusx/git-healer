@@ -437,6 +437,35 @@ def main():
     hk_parser.add_argument("--repo", "-r", default=".", help="Repository path")
     hk_parser.set_defaults(func=hook_command)
 
+    # Bloat & Large Asset Analyzer
+    def bloat_command(args):
+        terminal.print_banner()
+        from githealer.bloat.analyzer import BloatAnalyzer
+        from rich.table import Table
+        from rich.panel import Panel
+
+        report = BloatAnalyzer.analyze(args.repo, threshold_mb=args.threshold)
+        if not report.oversized_files:
+            terminal.console.print(f"[bold green]✔ Clean repository! No files exceeding {args.threshold}MB found.[/bold green]")
+            return
+
+        table = Table(title=f"🚨 Detected Oversized Assets (Total: {report.total_bloat_mb}MB)", header_style="bold magenta")
+        table.add_column("File Path", style="cyan")
+        table.add_column("Size (MB)", style="bold red")
+
+        for f in report.oversized_files:
+            table.add_row(f.path, f"{f.size_mb} MB")
+
+        terminal.console.print(Panel(table, title="[bold yellow]📦 Repository Bloat Analysis[/bold yellow]", expand=False))
+        terminal.console.print("\n[bold yellow]💡 Recommendations:[/bold yellow]")
+        for r in report.recommendations:
+            terminal.console.print(f"  • {r}")
+
+    bloat_parser = subparsers.add_parser("bloat", help="Detect oversized binary assets and repository bloat")
+    bloat_parser.add_argument("--repo", "-r", default=".", help="Repository path")
+    bloat_parser.add_argument("--threshold", "-t", type=float, default=5.0, help="Size threshold in MB (default: 5.0)")
+    bloat_parser.set_defaults(func=bloat_command)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
